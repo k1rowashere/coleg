@@ -1,0 +1,1 @@
+ghdl -a ../src/shift_register.vhd ../src/test.vhd && ghdl -e tb && ghdl -r tb --wave=waveform.ghw
