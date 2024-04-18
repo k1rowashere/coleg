@@ -96,6 +96,12 @@ class Node:
 
         return max(left_height, right_height) + 1
 
+    def node_count(self):
+        left = self.left.node_count() if self.left else 0
+        right = self.right.node_count() if self.right else 0
+
+        return left + right + 1
+
     def black_height(self):
         counter = 0
         head = self
@@ -123,6 +129,9 @@ class RbTree:
 
     def height(self) -> int:
         return self.root.height() if self.root else 0
+
+    def node_count(self) -> int:
+        return self.root.node_count() if self.root else 0
 
     def black_height(self) -> int:
         return self.root.black_height() if self.root else 0
@@ -199,10 +208,13 @@ class RbTree:
 
 
 def main(stdscr):
-    def print_heights():
-        stdscr.addstr(0, 0, f'Tree height = {dictionary.height()},'
-                      f'Black height = {dictionary.black_height()}'
-                      )
+    def print_stats():
+        msg = ('Dictionary stats:\n'
+               f'    Dictionary size = {dictionary.node_count()}\n'
+               f'    Tree height = {dictionary.height()}\n'
+               f'    Black height = {dictionary.black_height()}\n'
+               '-----------------------------------------------\n')
+        stdscr.addstr(0, 0, msg)
 
     curses.curs_set(1)
     curses.use_default_colors()
@@ -211,38 +223,43 @@ def main(stdscr):
     dictionary = RbTree()
     word = ""
 
-    stdscr.addstr(0, 0, 'Loading dictionary...')
+    stdscr.addstr('Loading dictionary...')
+    stdscr.refresh()
     with open('words_alpha.txt') as word_file:
         for line in word_file.read().split():
             dictionary.insert(line)
 
-    print_heights()
-    stdscr.addstr(1, 0, 'Find word: ')
+    print_stats()
+    stdscr.addstr('Find word: ')
+    stdscr.refresh()
+    mark = curses.getsyx()
 
     while True:
         c = stdscr.getch()
         match c:
-            case ascii.ESC:
+            case ascii.ESC:  # exit program
                 stdscr.clear()
-                stdscr.addstr(0, 0, 'Goodbye!')
+                stdscr.addstr('Program Exiting... Goodbye!')
+                stdscr.refresh()
                 time.sleep(1)
                 return
-            case ascii.NL:
-                # insert wrod into dictionary
-                dictionary.insert(word.lower())
-                print_heights()
+            case ascii.NL:  # insert into dictionary
+                if word != '':
+                    dictionary.insert(word.lower())
+                    print_stats()
             case curses.KEY_BACKSPACE:
                 word = word[:-1]
-                stdscr.addstr(1, 11 + len(word), ' ')
+                stdscr.addstr(mark[0], mark[1] + len(word), ' ')
             case _:
                 word += chr(c)
 
-        stdscr.addstr(2, 0, " " * 100)
-        stdscr.addstr(2, 0, f'Word In Dictionary?: {
+        stdscr.addstr(mark[0] + 1, 0, " " * 100)
+        stdscr.addstr(mark[0] + 1, 0, f'Word In Dictionary?: {
                       dictionary.contains(word.lower())}')
-        stdscr.move(1, 11 + len(word))
+        # key help for users
+        stdscr.addstr('Press <Enter> to insert word, <ESC> to exit')
+        stdscr.move(mark[0], mark[1] + len(word))
 
 
 if __name__ == '__main__':
-
     curses.wrapper(main)
