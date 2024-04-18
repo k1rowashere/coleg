@@ -1,4 +1,7 @@
 from __future__ import annotations
+import curses
+from curses import ascii
+import time
 from dataclasses import dataclass
 from enum import Enum
 from typing import Optional, Any
@@ -25,21 +28,23 @@ class Node:
     def new_red(value):
         return Node(value, None, None, None, Color.RED)
 
-    def insert_child(self, value) -> Node:
-        if value < self.value:
+    def insert(self, value) -> Node | None:
+        if value == self.value:
+            return None
+        elif value < self.value:
             if self.left is None:
                 self.left = Node.new_red(value)
                 self.left.parent = self
                 return self.left
             else:
-                return self.left.insert_child(value)
+                return self.left.insert(value)
         else:
             if self.right is None:
                 self.right = Node.new_red(value)
                 self.right.parent = self
                 return self.right
             else:
-                return self.right.insert_child(value)
+                return self.right.insert(value)
 
     def get_uncle(self) -> Node | None:
         if self.parent is None or self.parent.parent is None:
@@ -91,6 +96,16 @@ class Node:
 
         return max(left_height, right_height) + 1
 
+    def black_height(self):
+        counter = 0
+        head = self
+        while (True):
+            head = head.left
+            if head is None:
+                return counter + 1
+            if head.color == Color.BLACK:
+                counter += 1
+
     def find(self, value) -> Node | None:
         if self.value == value:
             return self
@@ -109,15 +124,26 @@ class RbTree:
     def height(self) -> int:
         return self.root.height() if self.root else 0
 
+    def black_height(self) -> int:
+        return self.root.black_height() if self.root else 0
+
     def find(self, value) -> Node | None:
         return self.root.find(value) if self.root else None
 
-    def insert(self, value):
+    def contains(self, value) -> bool:
+        return self.find(value) is not None
+
+    def insert(self, value) -> Node | None:
         if self.root is None:
             self.root = Node.new_black(value)
-            return
-        inserted_node = self.root.insert_child(value)
-        self.insert_fixup(inserted_node)
+            return self.root
+
+        inserted_node = self.root.insert(value)
+
+        if inserted_node:
+            self.insert_fixup(inserted_node)
+
+        return inserted_node
 
     def insert_fixup(self, node: Node):
         # case 1: node is root -> set to black
@@ -172,13 +198,51 @@ class RbTree:
             self.root = parent
 
 
-def main():
-    tree = RbTree()
-    for i in range(1, 11):
-        tree.insert(i)
+def main(stdscr):
+    def print_heights():
+        stdscr.addstr(0, 0, f'Tree height = {dictionary.height()},'
+                      f'Black height = {dictionary.black_height()}'
+                      )
 
-    print(tree.height())
+    curses.curs_set(1)
+    curses.use_default_colors()
+    curses.echo()
+
+    dictionary = RbTree()
+    word = ""
+
+    stdscr.addstr(0, 0, 'Loading dictionary...')
+    with open('words_alpha.txt') as word_file:
+        for line in word_file.read().split():
+            dictionary.insert(line)
+
+    print_heights()
+    stdscr.addstr(1, 0, 'Find word: ')
+
+    while True:
+        c = stdscr.getch()
+        match c:
+            case ascii.ESC:
+                stdscr.clear()
+                stdscr.addstr(0, 0, 'Goodbye!')
+                time.sleep(1)
+                return
+            case ascii.NL:
+                # insert wrod into dictionary
+                dictionary.insert(word.lower())
+                print_heights()
+            case curses.KEY_BACKSPACE:
+                word = word[:-1]
+                stdscr.addstr(1, 11 + len(word), ' ')
+            case _:
+                word += chr(c)
+
+        stdscr.addstr(2, 0, " " * 100)
+        stdscr.addstr(2, 0, f'Word In Dictionary?: {
+                      dictionary.contains(word.lower())}')
+        stdscr.move(1, 11 + len(word))
 
 
 if __name__ == '__main__':
-    main()
+
+    curses.wrapper(main)
