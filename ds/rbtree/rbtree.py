@@ -208,6 +208,9 @@ class RbTree:
 
 
 def main(stdscr):
+    curses.start_color()
+    curses.init_pair(1, curses.COLOR_RED, curses.COLOR_BLACK)
+    curses.init_pair(2, curses.COLOR_GREEN, curses.COLOR_BLACK)
     def print_stats():
         msg = ('Dictionary stats:\n'
                f'    Dictionary size = {dictionary.node_count()}\n'
@@ -249,9 +252,16 @@ def main(stdscr):
                 time.sleep(1)
                 return
             case ascii.NL:  # insert into dictionary
-                if word != '':
+                if dictionary.contains(word.lower()):
+                    stdscr.addstr(mark[0] + 2, 0, 'Word already in dictionary. Not inserted.\n', curses.color_pair(1))
+                    stdscr.refresh()
+                    time.sleep(1)
+                else:
                     dictionary.insert(word.lower())
+                    stdscr.addstr(mark[0] + 2, 0, 'Word inserted into dictionary.\n', curses.color_pair(2))
+                    stdscr.refresh()
                     print_stats()
+                    time.sleep(1)
             case curses.KEY_BACKSPACE:
                 word = word[:-1]
                 stdscr.addstr(mark[0], mark[1] + len(word), ' ')
