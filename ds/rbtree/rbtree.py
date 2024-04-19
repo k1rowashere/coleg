@@ -208,9 +208,6 @@ class RbTree:
 
 
 def main(stdscr):
-    curses.start_color()
-    curses.init_pair(1, curses.COLOR_RED, curses.COLOR_BLACK)
-    curses.init_pair(2, curses.COLOR_GREEN, curses.COLOR_BLACK)
     def print_stats():
         msg = ('Dictionary stats:\n'
                f'    Dictionary size = {dictionary.node_count()}\n'
@@ -218,6 +215,9 @@ def main(stdscr):
                f'    Black height = {dictionary.black_height()}\n'
                '-----------------------------------------------\n')
         stdscr.addstr(0, 0, msg)
+
+    curses.init_pair(1, curses.COLOR_RED, curses.COLOR_BLACK)
+    curses.init_pair(2, curses.COLOR_GREEN, curses.COLOR_BLACK)
 
     curses.curs_set(1)
     curses.use_default_colors()
@@ -228,7 +228,7 @@ def main(stdscr):
 
     stdscr.addstr('Loading dictionary...')
     stdscr.refresh()
-    with open('words.txt') as word_file:
+    with open('dictionary.txt') as word_file:
         for line in word_file.read().split():
             dictionary.insert(line.lower())
 
@@ -238,8 +238,10 @@ def main(stdscr):
     mark = curses.getsyx()
 
     while True:
-        stdscr.addstr(mark[0] + 1, 0, 'Word In Dictionary?: '
-                      f'{dictionary.contains(word.lower())} \n')
+        stdscr.addstr(mark[0] + 1, 0,
+                      'Word In Dictionary?: '
+                      f'{dictionary.contains(word.lower())}\n'
+                      )
         stdscr.addstr('Press <Enter> to insert word, <ESC> to exit')
         stdscr.move(mark[0], mark[1] + len(word))
 
@@ -253,12 +255,20 @@ def main(stdscr):
                 return
             case ascii.NL:  # insert into dictionary
                 if dictionary.contains(word.lower()):
-                    stdscr.addstr(mark[0] + 2, 0, 'Word already in dictionary. Not inserted.\n', curses.color_pair(1))
+                    stdscr.addstr(
+                        mark[0] + 1, 0,
+                        'Word already in dictionary. Not inserted.\n',
+                        curses.color_pair(1)
+                    )
                     stdscr.refresh()
                     time.sleep(1)
                 else:
                     dictionary.insert(word.lower())
-                    stdscr.addstr(mark[0] + 2, 0, 'Word inserted into dictionary.\n', curses.color_pair(2))
+                    stdscr.addstr(
+                        mark[0] + 1, 0,
+                        'Word inserted into dictionary.\n',
+                        curses.color_pair(2)
+                    )
                     stdscr.refresh()
                     print_stats()
                     time.sleep(1)
