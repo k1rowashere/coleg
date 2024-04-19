@@ -227,7 +227,7 @@ def main(stdscr):
     stdscr.refresh()
     with open('words.txt') as word_file:
         for line in word_file.read().split():
-            dictionary.insert(line)
+            dictionary.insert(line.lower())
 
     print_stats()
     stdscr.addstr('Find word: ')
