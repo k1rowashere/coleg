@@ -225,7 +225,7 @@ def main(stdscr):
 
     stdscr.addstr('Loading dictionary...')
     stdscr.refresh()
-    with open('words_alpha.txt') as word_file:
+    with open('words.txt') as word_file:
         for line in word_file.read().split():
             dictionary.insert(line)
 
@@ -235,6 +235,11 @@ def main(stdscr):
     mark = curses.getsyx()
 
     while True:
+        stdscr.addstr(mark[0] + 1, 0, 'Word In Dictionary?: '
+                      f'{dictionary.contains(word.lower())} \n')
+        stdscr.addstr('Press <Enter> to insert word, <ESC> to exit')
+        stdscr.move(mark[0], mark[1] + len(word))
+
         c = stdscr.getch()
         match c:
             case ascii.ESC:  # exit program
@@ -252,13 +257,6 @@ def main(stdscr):
                 stdscr.addstr(mark[0], mark[1] + len(word), ' ')
             case _:
                 word += chr(c)
-
-        stdscr.addstr(mark[0] + 1, 0, " " * 100)
-        stdscr.addstr(mark[0] + 1, 0, f'Word In Dictionary?: {
-                      dictionary.contains(word.lower())}')
-        # key help for users
-        stdscr.addstr('Press <Enter> to insert word, <ESC> to exit')
-        stdscr.move(mark[0], mark[1] + len(word))
 
 
 if __name__ == '__main__':
