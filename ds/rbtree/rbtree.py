@@ -254,24 +254,23 @@ def main(stdscr):
                 time.sleep(1)
                 return
             case ascii.NL:  # insert into dictionary
-                if dictionary.contains(word.lower()):
-                    stdscr.addstr(
-                        mark[0] + 1, 0,
-                        'Word already in dictionary. Not inserted.\n',
-                        curses.color_pair(1)
-                    )
-                    stdscr.refresh()
-                    time.sleep(1)
-                else:
-                    dictionary.insert(word.lower())
+                if dictionary.insert(word.lower()):
                     stdscr.addstr(
                         mark[0] + 1, 0,
                         'Word inserted into dictionary.\n',
                         curses.color_pair(2)
                     )
-                    stdscr.refresh()
-                    print_stats()
-                    time.sleep(1)
+                    with open('dictionary.txt', 'a') as word_file:
+                        word_file.write(f'\n{word.lower()}')
+                else:
+                    stdscr.addstr(
+                        mark[0] + 1, 0,
+                        'Word already in dictionary. Not inserted.\n',
+                        curses.color_pair(1)
+                    )
+                stdscr.refresh()
+                time.sleep(1)
+                print_stats()
             case curses.KEY_BACKSPACE:
                 word = word[:-1]
                 stdscr.addstr(mark[0], mark[1] + len(word), ' ')
